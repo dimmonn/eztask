@@ -4,7 +4,7 @@ Load Balancer skeleton for RoundRobin/PeakFaktor algorythms
 
 ## Getting Started
 
-git clone https://github.com/dimmonn/interview.git
+git clone https://github.com/dimmonn/eztask.git
 
 
 ### Prerequisites
