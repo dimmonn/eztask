@@ -7,9 +7,7 @@ import com.local.lb.servlet.errors.LbConnectionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class PeakFactor implements Balancable {
     private final Logger LOGGER = LogManager.getLogger(this);
@@ -18,24 +16,31 @@ public class PeakFactor implements Balancable {
         LOGGER.info(new Date() + "================= PeakFactor is started =================");
         long hostMaxLoad = hosts.
                 stream().
-                max(Comparator.comparing(Host::getLoad)).
+                max(Comparator.comparing(Host::getNumberOfActiveRequests)).
                 orElseThrow(() -> new LbConnectionException("connection is not established")).
-                getLoad();
+                getNumberOfActiveRequests();
         Host hostMinLoad = hosts.
                 stream().
-                min(Comparator.comparing(Host::getLoad)).
+                min(Comparator.comparing(Host::getNumberOfActiveRequests)).
                 orElseThrow(() -> new LbConnectionException("connection is not established"));
-
+        Host hostPicked = null;
         try {
-            Host hostPeaked = hosts.stream().filter(e -> e.getLoad() / (hostMaxLoad == 0 ? 1 : hostMaxLoad) < 0.75).
+            hostPicked = hosts.stream().
+                    filter(e -> (float)e.getNumberOfActiveRequests() / (hostMaxLoad == 0 ? 1 : hostMaxLoad) < 0.75).
                     findAny().
                     orElse(hostMinLoad);
-            hostPeaked.handleRequest(request);
-            LOGGER.info(new Date() + "================= PeakFactor is stopeed =================" + hostPeaked.getLoad());
+
+            hostPicked.handleRequest(request);
+
+            LOGGER.info(new Date() + "================= PeakFactor is stopeed =================" + hostPicked.getNumberOfActiveRequests());
+            return hostPicked;
         } catch (InterruptedException e) {
             LOGGER.error(e.getMessage());
         }
-        return hostMinLoad;
+        return hostPicked;
     }
 
+    public static void main(String[] args) {
+        System.out.println((float) 2/(3));
+    }
 }

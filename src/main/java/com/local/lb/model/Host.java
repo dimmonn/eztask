@@ -6,9 +6,7 @@ import com.local.lb.servlet.errors.LbConnectionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -19,18 +17,17 @@ public class Host {
     private final Logger LOGGER = LogManager.getLogger(this);
     private final CopyOnWriteArrayList<Request> requests = new CopyOnWriteArrayList<>();
 
-
     public void handleRequest(Request request) throws InterruptedException {
-        lastSubmitted.set(System.currentTimeMillis());
         requests.add(request);
         if (request != null) {
             Thread.sleep(new Random().nextInt(2000));
             LOGGER.info(this + " processes the request for connection " + request.getConnectionId());
             notifyLb(request);
-
+            lastSubmitted.set(System.currentTimeMillis());
         } else {
             throw new LbConnectionException("the connection towards LB container has not been established properly");
         }
+
     }
 
     public long getLastSubmitted() {
@@ -53,22 +50,46 @@ public class Host {
     }
 
 
-    public synchronized int getLoad() {
+    public int getNumberOfActiveRequests() {
         return requests.size();
     }
+
 
     @Override
     public String toString() {
         return "Host{" +
                 "lastSubmitted=" + lastSubmitted +
-                ", name='" + name + '\'' +
+                ", name='" + name + '\'' + ". load='" + requests.size() +
                 '}';
     }
 
-    public Host clone(Host host){
+
+    public Host clone(Host host) {
         Host tmpHost = new Host(host.name);
         tmpHost.lastSubmitted.set(host.lastSubmitted.get());
         return tmpHost;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Host host = (Host) o;
+        return name.equals(host.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public static void main(String[] args) {
+        List<Integer> integers = Arrays.asList(1, 2, 3, 4, 5, 6, 7);
+        Integer integer = integers.stream().filter(e -> e < 1).findAny().orElse(integers.stream().max(Comparator.comparing(Integer::intValue)).get());
+        System.out.println(integer);
+    }
 }

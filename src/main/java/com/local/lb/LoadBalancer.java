@@ -17,6 +17,7 @@ public class LoadBalancer extends LbConnectionListener implements Balancer {
     private final List<Host> hosts;
     private final Map<String, Request> requests = new ConcurrentHashMap<>();
 
+
     public LoadBalancer(List<Host> hosts, Balancable balancable) {
         this.hosts = hosts;
         this.balancable = balancable;
@@ -71,4 +72,7 @@ public class LoadBalancer extends LbConnectionListener implements Balancer {
         requests.values().remove(request);
         request.destroy();
     }
+
+
+
 }

@@ -26,7 +26,7 @@ public class RoundRobiin implements Balancable {
                     orElseThrow(() -> new LbConnectionException("connection is not established"));
             Host tmpHost = host.clone(host);
             host.handleRequest(request);
-            LOGGER.info(new Date() + "================= RoundRobiin is stopeed =================" + host.getLastSubmitted() + " " + host.getLoad());
+            LOGGER.info(new Date() + "================= RoundRobiin is stopeed =================" + host.getLastSubmitted() + " " + host.getNumberOfActiveRequests());
             return tmpHost;
         } catch (InterruptedException e) {
             LOGGER.error(e.getMessage());

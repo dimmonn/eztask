@@ -14,7 +14,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,9 +26,9 @@ public class RoundRobiinTest {
     private static ExecutorService executorService;
     private static final int POOL_SIZE = 10;
     private static final int nThreads = 2;
-    private static final int HOSTS_NUMBER = 10;
+    private static final int HOSTS_NUMBER = 4;
     private static final int BALANCING_NUM = 10;
-    private static List<Host> hosts = new ArrayList<>(HOSTS_NUMBER);
+    private static final List<Host> hosts = new ArrayList<>(HOSTS_NUMBER);
     private final Logger LOGGER = LogManager.getLogger(this);
 
     @BeforeClass
@@ -60,7 +62,39 @@ public class RoundRobiinTest {
 
     @Test
     public void balanceThreadedTest() {
+        LoadBalancer balancer = new LoadBalancer(hosts, new RoundRobiin());
+        balancer.setConnectionPool(connectionPool);
+        CompletableFuture.allOf(generateTask(balancer).thenAccept(e -> {
+                    for (int i = 0; i < e.size() - 1; i++) {
+                        Assert.assertTrue(e.get(i).getLastSubmitted() <= e.get(i + 1).getLastSubmitted());
+                    }
+                }),
+                generateTask(balancer).thenAccept(e -> {
+                    for (int i = 0; i < e.size() - 1; i++) {
+                        Assert.assertTrue(e.get(i).getLastSubmitted() <= e.get(i + 1).getLastSubmitted());
+                    }
+                }),
+                generateTask(balancer).thenAccept(e -> {
+                    for (int i = 0; i < e.size() - 1; i++) {
+                        Assert.assertTrue(e.get(i).getLastSubmitted() <= e.get(i + 1).getLastSubmitted());
+                    }
+                })).join();
+    }
 
+    private CompletableFuture<List<Host>> generateTask(LoadBalancer balancer) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Host> order = new ArrayList<>();
+            for (int i = 0; i < BALANCING_NUM * 2; i++) {
+                try (Connection connection = connectionPool.
+                        getConnection("http://example.com", "testContent", Transport.TCP)) {
+                    Request request = balancer.getRequestById(connection.getUuid().toString());
+                    Collections.synchronizedList(order).add(balancer.handleRequest(request));
+                } catch (Exception e) {
+                    LOGGER.info(e.getMessage());
+                }
+            }
+            return order;
+        }, executorService);
     }
 
     @Test(expected = WrongLbConfig.class)
