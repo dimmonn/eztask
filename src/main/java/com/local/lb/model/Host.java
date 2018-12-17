@@ -98,7 +98,7 @@ public class Host implements HostMBean {
 
     @Override
     public boolean isDamaged() {
-        return false;
+        return isDamaged;
     }
 
     @Override
