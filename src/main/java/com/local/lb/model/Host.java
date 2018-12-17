@@ -98,11 +98,16 @@ public class Host implements HostMBean {
 
     @Override
     public boolean isDamaged() {
+
         return isDamaged;
     }
 
     @Override
     public void setDamaged(boolean damaged) {
+        if (!damaged) {
+            LOGGER.warn("the hostname "+name+" is back to service");
+            lastSubmitted.set(0);
+        }
         this.isDamaged = damaged;
     }
 }
