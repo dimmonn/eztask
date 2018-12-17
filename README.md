@@ -23,18 +23,25 @@ there are 2 group of tests:
 2. to test parallel requests 
 
 ```
+com.local.lb.balancing.algorythm.PeakFactorTest.balanceSequentialTest
+com.local.lb.balancing.algorythm.PeakFactorTest.lessThenThreeFourthTest
+com.local.lb.balancing.algorythm.PeakFactorTest.moreThenTreeFourth
 com.local.lb.balancing.algorythm.RoundRobiinTest.balanceSequentialTest
+
 com.local.lb.balancing.algorythm.RoundRobiinTest.balanceThreadedTest
-```
-
-### And coding style tests
-
-these tests track all host's order in which balancing happened
 
 ```
-com/local/lb/balancing/algorythm/RoundRobiinTest.java:57
+3. suite for all tests
+
+```
+com.local.lb.LbTestSuite
 ```
 
 ## Deployment
 
-simply running tests are enough for demo, jconsole is needed though
+demo is available within the packages
+
+```
+demo.threaded
+demo.sequential
+```
