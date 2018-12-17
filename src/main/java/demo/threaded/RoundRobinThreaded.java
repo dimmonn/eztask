@@ -1,16 +1,20 @@
 package demo.threaded;
 
 import com.local.lb.LoadBalancer;
+import com.local.lb.balancing.algorythm.PeakFactor;
 import com.local.lb.balancing.algorythm.RoundRobiin;
 import com.local.lb.connection.Connection;
 import com.local.lb.connection.ConnectionPool;
 import com.local.lb.model.Host;
 import com.local.lb.servlet.Request;
 import com.local.lb.servlet.properties.Transport;
+import demo.GenericSeqRunner;
 import demo.sequential.RoundRobinSeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.management.MBeanServer;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +33,9 @@ class RoundRobinThreaded {
 
     public static void main(String[] args) {
         LoadBalancer balancer = new LoadBalancer(hosts, new RoundRobiin());
+        GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new PeakFactor());
+        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+        genericSeqRunner.registerMBeans(server, hosts);
         balancer.setConnectionPool(connectionPool);
         CompletableFuture.allOf(generateTask(balancer),
                 generateTask(balancer),
@@ -48,7 +55,7 @@ class RoundRobinThreaded {
     private static CompletableFuture<List<Host>> generateTask(LoadBalancer balancer) {
         return CompletableFuture.supplyAsync(() -> {
             List<Host> order = new ArrayList<>();
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 2000; i++) {
                 try (Connection connection = connectionPool.
                         getConnection("http://example.com", "testContent", Transport.TCP)) {
                     Request request = balancer.getRequestById(connection.getUuid().toString());

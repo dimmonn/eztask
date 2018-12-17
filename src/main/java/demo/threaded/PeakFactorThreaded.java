@@ -7,10 +7,13 @@ import com.local.lb.connection.ConnectionPool;
 import com.local.lb.model.Host;
 import com.local.lb.servlet.Request;
 import com.local.lb.servlet.properties.Transport;
+import demo.GenericSeqRunner;
 import demo.sequential.RoundRobinSeq;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.management.MBeanServer;
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +34,9 @@ class PeakFactorThreaded {
     public static void main(String[] args) {
 
         LoadBalancer balancer = new LoadBalancer(hosts, new PeakFactor());
+        GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new PeakFactor());
+        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+        genericSeqRunner.registerMBeans(server, hosts);
         balancer.setConnectionPool(connectionPool);
         CompletableFuture.allOf(
                 generateTask(balancer),
@@ -59,7 +65,7 @@ class PeakFactorThreaded {
     private static CompletableFuture<Map<Host, List<Host>>> generateTask(LoadBalancer balancer) {
         return CompletableFuture.supplyAsync(() -> {
             Map<Host, List<Host>> order = new HashMap<>();
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 10000; i++) {
                 try (Connection connection = connectionPool.
                         getConnection("http://example.com", "testContent", Transport.TCP)) {
                     Request request = balancer.getRequestById(connection.getUuid().toString());

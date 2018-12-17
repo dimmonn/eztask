@@ -39,7 +39,6 @@ public class Host implements HostMBean {
         } else {
             lastSubmitted.set(Long.MAX_VALUE);
             notifyLb(request);
-            LOGGER.warn("The host " + name + " is damaged and is not balancing a traffic");
         }
     }
 
@@ -107,6 +106,9 @@ public class Host implements HostMBean {
         if (!damaged) {
             LOGGER.warn("the hostname "+name+" is back to service");
             lastSubmitted.set(0);
+            requests.clear();
+        }else {
+            LOGGER.warn("The host " + name + " is damaged and is not balancing a traffic");
         }
         this.isDamaged = damaged;
     }

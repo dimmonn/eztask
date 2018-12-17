@@ -7,7 +7,9 @@ import com.local.lb.servlet.errors.LbConnectionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 
 public class PeakFactor implements Balancable {
     private final Logger LOGGER = LogManager.getLogger(this);
@@ -16,17 +18,18 @@ public class PeakFactor implements Balancable {
         LOGGER.info(new Date() + "================= PeakFactor is started =================");
         long hostMaxLoad = hosts.
                 stream().
+                filter(e->!e.isDamaged()).
                 max(Comparator.comparing(Host::getNumberOfActiveRequests)).
                 orElseThrow(() -> new LbConnectionException("connection is not established")).
                 getNumberOfActiveRequests();
         Host hostMinLoad = hosts.
-                stream().
+                stream().filter(e->!e.isDamaged()).
                 min(Comparator.comparing(Host::getNumberOfActiveRequests)).
                 orElseThrow(() -> new LbConnectionException("connection is not established"));
         Host hostPicked = null;
         try {
             hostPicked = hosts.stream().
-                    filter(e -> (float)e.getNumberOfActiveRequests() / (hostMaxLoad == 0 ? 1 : hostMaxLoad) < 0.75).
+                    filter(e -> (float) e.getNumberOfActiveRequests() / (hostMaxLoad == 0 ? 1 : hostMaxLoad) < 0.75 && !e.isDamaged()).
                     findAny().
                     orElse(hostMinLoad);
 

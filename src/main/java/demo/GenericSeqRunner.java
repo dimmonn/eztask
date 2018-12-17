@@ -11,6 +11,8 @@ import com.local.lb.servlet.properties.Transport;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.management.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GenericSeqRunner {
@@ -24,7 +26,7 @@ public class GenericSeqRunner {
         LoadBalancer balancer = new LoadBalancer(hosts, balancable);
         ConnectionPool connectionPool = new ConnectionPool(10);
         balancer.setConnectionPool(connectionPool);
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 2000; i++) {
             try (Connection connection = connectionPool.
                     getConnection("http://example.com", "testContent", Transport.TCP)) {
                 Request request = balancer.getRequestById(connection.getUuid().toString());
@@ -35,5 +37,29 @@ public class GenericSeqRunner {
 
         }
 
+    }
+
+    public static void registerMBeans(MBeanServer server,List<Host> hosts) {
+        List<ObjectName> objectNames = new ArrayList<>();
+        hosts.forEach(e -> {
+            try {
+
+                try {
+                    ObjectName mbeanName = new ObjectName("host" + e.getName(), "isDamaged", "false");
+                    objectNames.add(mbeanName);
+                    if (!server.isRegistered(mbeanName)) {
+                        server.registerMBean(e, mbeanName);
+
+                    }
+                } catch (MalformedObjectNameException exc) {
+                    LOGGER.error("object is malformed", exc);
+                }
+
+
+            } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {
+                LOGGER.error("failed to register mbean", ex);
+            }
+
+        });
     }
 }
