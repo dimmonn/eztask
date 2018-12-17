@@ -18,11 +18,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class RoundRobinThreaded {
+class RoundRobinThreaded {
     private static final Logger LOGGER = LogManager.getLogger(RoundRobinSeq.class);
-    private static ExecutorService executorService = Executors.newFixedThreadPool(20);
-    private static ConnectionPool connectionPool = new ConnectionPool(10);
-    private static List<Host> hosts = Arrays.asList(new Host("TEST_1"),
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(20);
+    private static final ConnectionPool connectionPool = new ConnectionPool(10);
+    private static final List<Host> hosts = Arrays.asList(new Host("TEST_1"),
             new Host("TEST_2"),
             new Host("TEST_3"),
             new Host("TEST_4"));

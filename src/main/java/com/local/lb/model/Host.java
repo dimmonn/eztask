@@ -17,6 +17,7 @@ public class Host {
     private final Logger LOGGER = LogManager.getLogger(this);
     private final CopyOnWriteArrayList<Request> requests = new CopyOnWriteArrayList<>();
 
+
     public void handleRequest(Request request) throws InterruptedException {
         requests.add(request);
         if (request != null) {
@@ -83,13 +84,4 @@ public class Host {
         return Objects.hash(name);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public static void main(String[] args) {
-        List<Integer> integers = Arrays.asList(1, 2, 3, 4, 5, 6, 7);
-        Integer integer = integers.stream().filter(e -> e < 1).findAny().orElse(integers.stream().max(Comparator.comparing(Integer::intValue)).get());
-        System.out.println(integer);
-    }
 }

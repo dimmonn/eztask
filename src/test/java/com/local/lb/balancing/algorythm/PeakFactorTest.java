@@ -12,11 +12,12 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PeakFactorTest {
     private static ConnectionPool connectionPool;
@@ -50,11 +51,45 @@ public class PeakFactorTest {
             }
 
         }
-        for (int j = 0; j < order.size() - 1; j++) {
-            System.out.println(order.get(j).getNumberOfActiveRequests() + " " + order.stream().map(Host::getNumberOfActiveRequests).collect(Collectors.toList()));
-            Assert.assertTrue(order.get(j).getNumberOfActiveRequests() < 0.75 || Integer.valueOf(order.get(j).getNumberOfActiveRequests()).
-                    equals(order.stream().min(Comparator.comparing(Host::getNumberOfActiveRequests))));
+        for (Host host : order) {
+            Assert.assertEquals(0,host.getNumberOfActiveRequests());
         }
     }
 
+    @Test
+    public void lessThenThreeFourthTest() {
+        for (int i = 1; i < 50; i++) {
+            Host hostX = mock(Host.class);
+            when(hostX.getNumberOfActiveRequests()).thenReturn(i);
+            Host hostY = mock(Host.class);
+            when(hostY.getNumberOfActiveRequests()).thenReturn(2 * i);
+            Host hostZ = mock(Host.class);
+            when(hostZ.getNumberOfActiveRequests()).thenReturn(3 * i);
+            Host hostF = mock(Host.class);
+            when(hostF.getNumberOfActiveRequests()).thenReturn(4 * i);
+            List<Host> hosts = Arrays.asList(hostX, hostY, hostZ, hostF);
+            LoadBalancer lb = new LoadBalancer(hosts, new PeakFactor());
+            Host hostPicked = lb.handleRequest(null);
+            Assert.assertTrue((float)hostPicked.getNumberOfActiveRequests() / (4 * i) < 0.75);
+        }
+
+    }
+
+    @Test
+    public void moreThenTreeFourth() {
+        for (int i = 1; i < 50; i++) {
+            Host hostX = mock(Host.class);
+            when(hostX.getNumberOfActiveRequests()).thenReturn(50+i);
+            Host hostY = mock(Host.class);
+            when(hostY.getNumberOfActiveRequests()).thenReturn(51+i);
+            Host hostZ = mock(Host.class);
+            when(hostZ.getNumberOfActiveRequests()).thenReturn(52+i);
+            Host hostF = mock(Host.class);
+            when(hostF.getNumberOfActiveRequests()).thenReturn(53+i);
+            List<Host> hosts = Arrays.asList(hostX, hostY, hostZ, hostF);
+            LoadBalancer lb = new LoadBalancer(hosts, new PeakFactor());
+            Host hostPicked = lb.handleRequest(null);
+            Assert.assertEquals(50+i,hostPicked.getNumberOfActiveRequests());
+        }
+    }
 }

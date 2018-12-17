@@ -23,7 +23,7 @@ public class Connection implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         LOGGER.info("CONNECTION " + uuid + " IS CLOSED AND IS BACK TO THE POOL");
         this.uuid = null;
         this.transport = null;

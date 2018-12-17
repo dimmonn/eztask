@@ -40,7 +40,4 @@ public class PeakFactor implements Balancable {
         return hostPicked;
     }
 
-    public static void main(String[] args) {
-        System.out.println((float) 2/(3));
-    }
 }

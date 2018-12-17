@@ -26,12 +26,12 @@ public class ConnectionPoolTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         connectionPool = new ConnectionPool(SIZE);
     }
 
     @Test
-    public void getConnectionTest() throws Exception {
+    public void getConnectionTest() {
 
         List<Connection> connections = new ArrayList<>();
         for (int i = 9; i >= 0; i--) {

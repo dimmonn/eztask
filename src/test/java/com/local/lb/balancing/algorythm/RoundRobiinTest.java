@@ -98,7 +98,7 @@ public class RoundRobiinTest {
     }
 
     @Test(expected = WrongLbConfig.class)
-    public void wrongLbConfigTest() throws Exception {
+    public void wrongLbConfigTest() {
         LoadBalancer balancer = new LoadBalancer(null, new RoundRobiin());
         try (Connection connection = connectionPool.
                 getConnection("http://example.com", "testContent", Transport.TCP)) {

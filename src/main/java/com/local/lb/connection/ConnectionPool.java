@@ -16,7 +16,7 @@ public class ConnectionPool {
     private final LinkedBlockingDeque<Connection> connections = new LinkedBlockingDeque<>();
 
     private final List<LbConnectionListener> listeners = new ArrayList<>();
-    private Logger LOGGER = LogManager.getLogger(this);
+    private final Logger LOGGER = LogManager.getLogger(this);
 
     public ConnectionPool(int pool) {
         for (int i = 0; i < pool; i++) {
