@@ -45,3 +45,6 @@ demo is available within the packages
 demo.threaded
 demo.sequential
 ```
+## Example how to simulate damaged vm
+change managed bean property isDamaged to true
+![Screenshot](mbeans.png) 
