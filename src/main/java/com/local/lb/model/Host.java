@@ -6,29 +6,41 @@ import com.local.lb.servlet.errors.LbConnectionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Host {
+public class Host implements HostMBean {
     private final List<LbConnectionListener> observers = new ArrayList<>();
     private final AtomicLong lastSubmitted = new AtomicLong(0);
     private final String name;
     private final Logger LOGGER = LogManager.getLogger(this);
     private final CopyOnWriteArrayList<Request> requests = new CopyOnWriteArrayList<>();
+    private boolean isDamaged;
 
+    public String getName() {
+        return name;
+    }
 
     public void handleRequest(Request request) throws InterruptedException {
-        requests.add(request);
-        if (request != null) {
-            Thread.sleep(new Random().nextInt(2000));
-            LOGGER.info(this + " processes the request for connection " + request.getConnectionId());
-            notifyLb(request);
-            lastSubmitted.set(System.currentTimeMillis());
+        if (!isDamaged) {
+            requests.add(request);
+            if (request != null) {
+                Thread.sleep(new Random().nextInt(2000));
+                LOGGER.info(this + " processes the request for connection " + request.getConnectionId());
+                notifyLb(request);
+                lastSubmitted.set(System.currentTimeMillis());
+            } else {
+                throw new LbConnectionException("the connection towards LB container has not been established properly");
+            }
         } else {
-            throw new LbConnectionException("the connection towards LB container has not been established properly");
+            lastSubmitted.set(Long.MAX_VALUE);
+            notifyLb(request);
+            LOGGER.warn("The host " + name + " is damaged and is not balancing a traffic");
         }
-
     }
 
     public long getLastSubmitted() {
@@ -84,4 +96,13 @@ public class Host {
         return Objects.hash(name);
     }
 
+    @Override
+    public boolean isDamaged() {
+        return false;
+    }
+
+    @Override
+    public void setDamaged(boolean damaged) {
+        this.isDamaged = damaged;
+    }
 }
