@@ -1,11 +1,9 @@
 package com.local.lb.balancing.algorythm;
 
 import com.local.lb.LoadBalancer;
-import com.local.lb.connection.Connection;
 import com.local.lb.connection.ConnectionPool;
 import com.local.lb.model.Host;
-import com.local.lb.servlet.Request;
-import com.local.lb.servlet.properties.Transport;
+import demo.GenericSeqRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
@@ -42,17 +40,12 @@ public class PeakFactorTest {
         LoadBalancer balancer = new LoadBalancer(hosts, new PeakFactor());
         balancer.setConnectionPool(connectionPool);
         for (int i = 0; i < BALANCING_NUM * 2; i++) {
-            try (Connection connection = connectionPool.
-                    getConnection("http://example.com", "testContent", Transport.TCP)) {
-                Request request = balancer.getRequestById(connection.getUuid().toString());
-                order.add(balancer.handleRequest(request));
-            } catch (Exception e) {
-                LOGGER.info(e.getMessage());
-            }
+            GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new RoundRobiin());
+            order.addAll(genericSeqRunner.oneTimeRun(connectionPool, balancer));
 
         }
         for (Host host : order) {
-            Assert.assertEquals(0,host.getNumberOfActiveRequests());
+            Assert.assertEquals(0, host.getNumberOfActiveRequests());
         }
     }
 
@@ -70,7 +63,7 @@ public class PeakFactorTest {
             List<Host> hosts = Arrays.asList(hostX, hostY, hostZ, hostF);
             LoadBalancer lb = new LoadBalancer(hosts, new PeakFactor());
             Host hostPicked = lb.handleRequest(null);
-            Assert.assertTrue((float)hostPicked.getNumberOfActiveRequests() / (4 * i) < 0.75);
+            Assert.assertTrue((float) hostPicked.getNumberOfActiveRequests() / (4 * i) < 0.75);
         }
 
     }
@@ -79,17 +72,17 @@ public class PeakFactorTest {
     public void moreThenTreeFourth() {
         for (int i = 1; i < 50; i++) {
             Host hostX = mock(Host.class);
-            when(hostX.getNumberOfActiveRequests()).thenReturn(50+i);
+            when(hostX.getNumberOfActiveRequests()).thenReturn(50 + i);
             Host hostY = mock(Host.class);
-            when(hostY.getNumberOfActiveRequests()).thenReturn(51+i);
+            when(hostY.getNumberOfActiveRequests()).thenReturn(51 + i);
             Host hostZ = mock(Host.class);
-            when(hostZ.getNumberOfActiveRequests()).thenReturn(52+i);
+            when(hostZ.getNumberOfActiveRequests()).thenReturn(52 + i);
             Host hostF = mock(Host.class);
-            when(hostF.getNumberOfActiveRequests()).thenReturn(53+i);
+            when(hostF.getNumberOfActiveRequests()).thenReturn(53 + i);
             List<Host> hosts = Arrays.asList(hostX, hostY, hostZ, hostF);
             LoadBalancer lb = new LoadBalancer(hosts, new PeakFactor());
             Host hostPicked = lb.handleRequest(null);
-            Assert.assertEquals(50+i,hostPicked.getNumberOfActiveRequests());
+            Assert.assertEquals(50 + i, hostPicked.getNumberOfActiveRequests());
         }
     }
 }

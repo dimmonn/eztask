@@ -7,6 +7,7 @@ import com.local.lb.model.Host;
 import com.local.lb.servlet.Request;
 import com.local.lb.servlet.errors.WrongLbConfig;
 import com.local.lb.servlet.properties.Transport;
+import demo.GenericSeqRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
@@ -46,14 +47,8 @@ public class RoundRobiinTest {
         LoadBalancer balancer = new LoadBalancer(hosts, new RoundRobiin());
         balancer.setConnectionPool(connectionPool);
         for (int i = 0; i < BALANCING_NUM * 2; i++) {
-            try (Connection connection = connectionPool.
-                    getConnection("http://example.com", "testContent", Transport.TCP)) {
-                Request request = balancer.getRequestById(connection.getUuid().toString());
-                order.add(balancer.handleRequest(request));
-            } catch (Exception e) {
-                LOGGER.info(e.getMessage());
-            }
-
+            GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new RoundRobiin());
+            order.addAll(genericSeqRunner.oneTimeRun(connectionPool, balancer));
         }
         for (int j = 0; j < order.size() - 1; j++) {
             Assert.assertTrue(order.get(j).getLastSubmitted() <= order.get(j + 1).getLastSubmitted());

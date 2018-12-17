@@ -21,7 +21,7 @@ public class RoundRobinSeq {
     public static void main(String[] args) {
         GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new RoundRobiin());
         MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        genericSeqRunner.registerMBeans(server,hosts);
+        GenericSeqRunner.registerMBeans(server,hosts);
         genericSeqRunner.runSeqTask(hosts);
 
     }

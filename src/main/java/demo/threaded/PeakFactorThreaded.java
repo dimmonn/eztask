@@ -36,7 +36,7 @@ class PeakFactorThreaded {
         LoadBalancer balancer = new LoadBalancer(hosts, new PeakFactor());
         GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new PeakFactor());
         MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        genericSeqRunner.registerMBeans(server, hosts);
+        GenericSeqRunner.registerMBeans(server, hosts);
         balancer.setConnectionPool(connectionPool);
         CompletableFuture.allOf(
                 generateTask(balancer),

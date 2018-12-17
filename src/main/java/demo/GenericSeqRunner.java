@@ -7,7 +7,6 @@ import com.local.lb.connection.ConnectionPool;
 import com.local.lb.model.Host;
 import com.local.lb.servlet.Request;
 import com.local.lb.servlet.properties.Transport;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,11 +17,12 @@ import java.util.List;
 public class GenericSeqRunner {
     private final Balancable balancable;
     private static final Logger LOGGER = LogManager.getLogger(GenericSeqRunner.class);
+
     public GenericSeqRunner(Balancable balancable) {
         this.balancable = balancable;
     }
 
-    public void runSeqTask(List<Host> hosts){
+    public void runSeqTask(List<Host> hosts) {
         LoadBalancer balancer = new LoadBalancer(hosts, balancable);
         ConnectionPool connectionPool = new ConnectionPool(10);
         balancer.setConnectionPool(connectionPool);
@@ -39,14 +39,12 @@ public class GenericSeqRunner {
 
     }
 
-    public static void registerMBeans(MBeanServer server,List<Host> hosts) {
-        List<ObjectName> objectNames = new ArrayList<>();
+    public static void registerMBeans(MBeanServer server, List<Host> hosts) {
         hosts.forEach(e -> {
             try {
 
                 try {
                     ObjectName mbeanName = new ObjectName("host" + e.getName(), "isDamaged", "false");
-                    objectNames.add(mbeanName);
                     if (!server.isRegistered(mbeanName)) {
                         server.registerMBean(e, mbeanName);
 
@@ -61,5 +59,17 @@ public class GenericSeqRunner {
             }
 
         });
+    }
+
+    public List<Host> oneTimeRun(ConnectionPool connectionPool, LoadBalancer balancer) {
+        List<Host> order = new ArrayList<>();
+        try (Connection connection = connectionPool.
+                getConnection("http://example.com", "testContent", Transport.TCP)) {
+            Request request = balancer.getRequestById(connection.getUuid().toString());
+            order.add(balancer.handleRequest(request));
+        } catch (Exception e) {
+            LOGGER.info(e.getMessage());
+        }
+        return order;
     }
 }

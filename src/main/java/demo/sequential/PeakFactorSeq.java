@@ -19,7 +19,7 @@ class PeakFactorSeq {
 
         GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new PeakFactor());
         MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        genericSeqRunner.registerMBeans(server,hosts);
+        GenericSeqRunner.registerMBeans(server,hosts);
         genericSeqRunner.runSeqTask(hosts);
 
     }

@@ -3,11 +3,8 @@ package demo.threaded;
 import com.local.lb.LoadBalancer;
 import com.local.lb.balancing.algorythm.PeakFactor;
 import com.local.lb.balancing.algorythm.RoundRobiin;
-import com.local.lb.connection.Connection;
 import com.local.lb.connection.ConnectionPool;
 import com.local.lb.model.Host;
-import com.local.lb.servlet.Request;
-import com.local.lb.servlet.properties.Transport;
 import demo.GenericSeqRunner;
 import demo.sequential.RoundRobinSeq;
 import org.apache.logging.log4j.LogManager;
@@ -35,7 +32,7 @@ class RoundRobinThreaded {
         LoadBalancer balancer = new LoadBalancer(hosts, new RoundRobiin());
         GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new PeakFactor());
         MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        genericSeqRunner.registerMBeans(server, hosts);
+        GenericSeqRunner.registerMBeans(server, hosts);
         balancer.setConnectionPool(connectionPool);
         CompletableFuture.allOf(generateTask(balancer),
                 generateTask(balancer),
@@ -56,13 +53,8 @@ class RoundRobinThreaded {
         return CompletableFuture.supplyAsync(() -> {
             List<Host> order = new ArrayList<>();
             for (int i = 0; i < 2000; i++) {
-                try (Connection connection = connectionPool.
-                        getConnection("http://example.com", "testContent", Transport.TCP)) {
-                    Request request = balancer.getRequestById(connection.getUuid().toString());
-                    order.add(balancer.handleRequest(request));
-                } catch (Exception e) {
-                    LOGGER.info(e.getMessage());
-                }
+                GenericSeqRunner genericSeqRunner = new GenericSeqRunner(new RoundRobiin());
+                order.addAll(genericSeqRunner.oneTimeRun(connectionPool, balancer));
             }
             return order;
         }, executorService);
