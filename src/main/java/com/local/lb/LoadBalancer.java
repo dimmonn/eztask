@@ -6,6 +6,7 @@ import com.local.lb.model.Host;
 import com.local.lb.servlet.Balancer;
 import com.local.lb.servlet.Request;
 import com.local.lb.servlet.properties.Transport;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ public class LoadBalancer extends LbConnectionListener implements Balancer {
     private final Balancable balancable;
     private final List<Host> hosts;
     private final Map<String, Request> requests = new ConcurrentHashMap<>();
-
+    private final org.apache.logging.log4j.Logger LOGGER = LogManager.getLogger(this);
 
     public LoadBalancer(List<Host> hosts, Balancable balancable) {
         this.hosts = hosts;
@@ -45,17 +46,18 @@ public class LoadBalancer extends LbConnectionListener implements Balancer {
 
     @Override
     public void init() {
-
+        LOGGER.info("initializing request...");
     }
 
     @Override
     public void destroy() {
-
+        LOGGER.info("Destroying the request");
     }
 
 
     @Override
     public void onConnectionEstablished(String url, String content, Transport transport, UUID uuid) {
+        init();
         Request request = Request.getRequestBuilder().
                 setAddress(url).
                 setPayload(content).
@@ -63,16 +65,17 @@ public class LoadBalancer extends LbConnectionListener implements Balancer {
                 setRequestId(UUID.randomUUID()).
                 setConnectionId(uuid).
                 build();
+        service(request);
         requests.put(uuid.toString(), request);
 
     }
 
     @Override
     public void onRequestCompleted(Request request) {
+        destroy();
         requests.values().remove(request);
         request.destroy();
     }
-
 
 
 }
