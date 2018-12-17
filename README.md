@@ -47,4 +47,4 @@ demo.sequential
 ```
 ## Example how to simulate damaged vm
 change managed bean property isDamaged to true
-![Screenshot](mbeans.png) 
+![Screenshot](src/main/resources/mbeans.png) 
