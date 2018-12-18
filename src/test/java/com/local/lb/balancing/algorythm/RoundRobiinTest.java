@@ -6,6 +6,7 @@ import com.local.lb.connection.ConnectionPool;
 import com.local.lb.model.Host;
 import com.local.lb.servlet.Request;
 import com.local.lb.servlet.errors.WrongLbConfig;
+import com.local.lb.servlet.errors.WrongProtocolException;
 import com.local.lb.servlet.properties.Transport;
 import demo.GenericSeqRunner;
 import org.apache.logging.log4j.LogManager;
@@ -15,11 +16,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RoundRobiinTest {
 
@@ -102,4 +107,33 @@ public class RoundRobiinTest {
         }
 
     }
+
+    @Test(expected = WrongProtocolException.class)
+    public void wrongProtocolTest() {
+        LoadBalancer balancer = new LoadBalancer(hosts, new RoundRobiin());
+        balancer.setConnectionPool(connectionPool);
+        try (Connection connection = connectionPool.
+                getConnection("http://example.com", "testContent", Transport.WRONGPROTOCOL)) {
+        }
+
+    }
+
+    @Test
+    public void roundRobinLowestWins() {
+        for (int i = 1; i < 50; i++) {
+            Host hostX = mock(Host.class);
+            when(hostX.getLastSubmitted()).thenReturn((long) i+1);
+            Host hostY = mock(Host.class);
+            when(hostY.getLastSubmitted()).thenReturn((long) i+2);
+            Host hostZ = mock(Host.class);
+            when(hostZ.getLastSubmitted()).thenReturn((long) i+3);
+            Host hostF = mock(Host.class);
+            when(hostF.getLastSubmitted()).thenReturn((long) i+4);
+            List<Host> hosts = Arrays.asList(hostX, hostY, hostZ, hostF);
+            LoadBalancer lb = new LoadBalancer(hosts, new PeakFactor());
+            Host hostPicked = lb.handleRequest(null);
+            Assert.assertEquals(i+1, hostPicked.getLastSubmitted());
+        }
+    }
+
 }

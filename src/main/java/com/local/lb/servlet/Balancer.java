@@ -8,9 +8,9 @@ public interface Balancer {
 
     default void service(Request request) throws WrongProtocolException {
 
-        if (!request.getTransport().equals(Transport.TCP.getVersion()) &&
-                !request.getTransport().equals(Transport.UDP.getVersion()) &&
-                !request.getTransport().equals(Transport.LBPROPRIETARY.getVersion())) {
+        if (!request.getTransport().equals(Transport.TCP) &&
+                !request.getTransport().equals(Transport.UDP) &&
+                !request.getTransport().equals(Transport.LBPROPRIETARY)) {
             throw new WrongProtocolException("the protocol passed is not supported");
         }
         handleRequest(request);

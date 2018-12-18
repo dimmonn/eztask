@@ -17,8 +17,8 @@ public class Request {
 
     }
 
-    public String getTransport() {
-        return transport.getVersion();
+    public Transport getTransport() {
+        return transport;
     }
 
     public static RequestBuilder getRequestBuilder() {
